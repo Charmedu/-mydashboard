@@ -9,26 +9,51 @@ import { useAutoSave, SaveStatus } from '@/lib/useAutoSave';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function migrateData(raw: Record<string, any>): DashboardData {
-  if (!raw?.weekly?.habits) return raw as DashboardData;
-  return {
-    ...raw,
-    weekly: {
-      ...raw.weekly,
+  // Migrate habits: days[] → completions Record
+  if (raw?.weekly?.habits) {
+    raw = {
+      ...raw,
+      weekly: {
+        ...raw.weekly,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        habits: raw.weekly.habits.map((h: Record<string, any>) => {
+          if (h.completions !== undefined) return h;
+          return {
+            id: h.id, name: h.name, icon: h.icon ?? '🎯',
+            color: h.color ?? '#6366f1', section: h.section ?? 'daily',
+            weeklyGoal: h.weeklyGoal ?? 7,
+            completions: h.days ? { [raw.weekly.weekOf]: h.days } : {},
+          };
+        }),
+      },
+    };
+  }
+
+  // Migrate quarterly: single QuarterlyData → Record<string, QuarterlyData>
+  if (raw?.quarterly) {
+    const q = raw.quarterly;
+    if (typeof q.quarter === 'string') {
+      // Old format: single object with quarter field
+      raw = {
+        ...raw,
+        quarterly: {
+          [q.quarter]: { ...q, achievements: q.achievements ?? [], parkingLot: q.parkingLot ?? [] },
+        },
+      };
+    } else {
+      // Already Record format — ensure each entry has the new fields
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      habits: raw.weekly.habits.map((h: Record<string, any>) => {
-        if (h.completions !== undefined) return h;
-        return {
-          id: h.id,
-          name: h.name,
-          icon: h.icon ?? '🎯',
-          color: h.color ?? '#6366f1',
-          section: h.section ?? 'daily',
-          weeklyGoal: h.weeklyGoal ?? 7,
-          completions: h.days ? { [raw.weekly.weekOf]: h.days } : {},
-        };
-      }),
-    },
-  } as DashboardData;
+      const migrated: Record<string, any> = {};
+      for (const [key, val] of Object.entries(q)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const v = val as Record<string, any>;
+        migrated[key] = { ...v, achievements: v.achievements ?? [], parkingLot: v.parkingLot ?? [] };
+      }
+      raw = { ...raw, quarterly: migrated };
+    }
+  }
+
+  return raw as DashboardData;
 }
 import WeeklyView from './weekly/WeeklyView';
 import QuarterlyView from './quarterly/QuarterlyView';

@@ -130,6 +130,18 @@ export interface WeeklyData {
   goals: string[];
 }
 
+export interface Achievement {
+  id: string;
+  text: string;
+  date: string; // ISO date
+}
+
+export interface ParkingItem {
+  id: string;
+  text: string;
+  addedAt: string; // ISO date
+}
+
 export interface QuarterlyData {
   quarter: string;
   goals: {
@@ -144,6 +156,8 @@ export interface QuarterlyData {
     monthlyIncome?: number;
     monthlyExpenses?: number;
   };
+  achievements: Achievement[];
+  parkingLot: ParkingItem[];
 }
 
 export interface SchoolData {
@@ -158,7 +172,7 @@ export interface SchoolData {
 
 export interface DashboardData {
   weekly: WeeklyData;
-  quarterly: QuarterlyData;
+  quarterly: Record<string, QuarterlyData>; // keyed by "YYYY-QN"
   books: Book[];
   bucketList: BucketItem[];
   school: SchoolData;

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Goal } from '@/lib/types';
 import { Plus, Trash2, Check } from 'lucide-react';
 import { nanoid } from '@/lib/nanoid';
+import { celebrate } from '@/lib/celebrate';
 
 interface GoalsMap {
   finance: Goal[];
@@ -37,8 +38,10 @@ function GoalSection({ category, goals, onUpdate }: {
     setText('');
   }
 
-  function toggle(id: string) {
+  function toggle(id: string, e: React.MouseEvent<HTMLButtonElement>) {
+    const completing = !goals.find(g => g.id === id)?.done;
     onUpdate(goals.map(g => g.id === id ? { ...g, done: !g.done } : g));
+    if (completing) celebrate(e.currentTarget);
   }
 
   function remove(id: string) {
@@ -58,8 +61,8 @@ function GoalSection({ category, goals, onUpdate }: {
         {goals.map(goal => (
           <div key={goal.id} className="flex items-center gap-2 group">
             <button
-              onClick={() => toggle(goal.id)}
-              className={`w-4 h-4 flex-shrink-0 rounded border-2 flex items-center justify-center transition-colors ${
+              onClick={e => toggle(goal.id, e)}
+              className={`w-4 h-4 flex-shrink-0 rounded border-2 flex items-center justify-center transition-all hover:scale-110 active:scale-95 ${
                 goal.done ? 'bg-slate-600 border-slate-600' : 'border-slate-400 hover:border-slate-600'
               }`}
             >

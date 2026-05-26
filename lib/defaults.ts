@@ -20,16 +20,12 @@ export function getDefaultData(): DashboardData {
       goals: [],
     },
     quarterly: {
-      quarter,
-      goals: {
-        finance: [],
-        health: [],
-        school: [],
-        personal: [],
-      },
-      finances: {
-        creditCards: [],
-        savings: [],
+      [quarter]: {
+        quarter,
+        goals: { finance: [], health: [], school: [], personal: [] },
+        finances: { creditCards: [], savings: [] },
+        achievements: [],
+        parkingLot: [],
       },
     },
     books: [],
