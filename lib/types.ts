@@ -212,6 +212,9 @@ export interface UniversityEmail {
   subject: string;
   snippet: string;
   receivedAt: string;
+  threadId?: string;      // Gmail thread ID, for reply threading
+  messageId?: string;     // RFC 2822 Message-ID header, for In-Reply-To
+  needsResponse?: boolean;
 }
 
 export interface UserLocation {

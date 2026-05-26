@@ -211,16 +211,23 @@ async function sendMorningBriefing(data: DashboardData, refreshToken: string | n
   const [weather, events, gmailResult] = await Promise.all([
     getWeather(lat, lon),
     accessToken ? fetchTodayEvents(accessToken) : Promise.resolve([]),
-    accessToken ? scanGmail(accessToken, 24) : Promise.resolve({ universityEmails: [], billAlerts: [], urgentEmails: [] }),
+    accessToken ? scanGmail(accessToken, 24) : Promise.resolve({ universityEmails: [], billAlerts: [], urgentEmails: [], needsReplyEmails: [] }),
   ]);
 
-  // Save new university emails to DB
-  if (gmailResult.universityEmails.length > 0) {
-    const newEmails = gmailResult.universityEmails.map(e => ({
-      id: e.id, from: e.from, subject: e.subject, snippet: e.snippet, receivedAt: e.receivedAt,
-    }));
+  // Save new scanned emails to DB (uni emails + needs-reply emails, deduplicated)
+  const allScanned = [
+    ...gmailResult.universityEmails,
+    ...gmailResult.needsReplyEmails.filter(e => !gmailResult.universityEmails.some(u => u.id === e.id)),
+  ];
+  if (allScanned.length > 0) {
     const existing = new Set((data.universityEmails ?? []).map(e => e.id));
-    const toAdd = newEmails.filter(e => !existing.has(e.id));
+    const toAdd = allScanned
+      .filter(e => !existing.has(e.id))
+      .map(e => ({
+        id: e.id, from: e.from, subject: e.subject, snippet: e.snippet,
+        receivedAt: e.receivedAt, threadId: e.threadId, messageId: e.messageId,
+        needsResponse: e.needsResponse,
+      }));
     if (toAdd.length > 0) {
       await saveUserData(USER_EMAIL, {
         ...data,
@@ -339,12 +346,24 @@ async function sendMorningBriefing(data: DashboardData, refreshToken: string | n
     ccAlerts.forEach(a => parts.push(`💳 ⚠️ ${esc(a)}`));
   }
 
-  // University emails
-  const uniEmails = gmailResult.universityEmails.slice(0, 3);
-  if (uniEmails.length > 0) {
+  // Emails needing a reply (numbered for easy reference)
+  const replyEmails = gmailResult.needsReplyEmails.slice(0, 5);
+  if (replyEmails.length > 0) {
+    parts.push('');
+    parts.push(`📧 <b>Emails Needing a Reply</b>`);
+    replyEmails.forEach((e, i) => {
+      const senderName = e.from.match(/^([^<]+)/)?.[1]?.trim() ?? e.from;
+      parts.push(`  ${i + 1}. <b>${esc(senderName)}</b> — <i>${esc(e.subject.slice(0, 55))}</i>`);
+    });
+    parts.push(`  <i>Reply: </i><code>reply [sender] your message</code>`);
+  }
+
+  // Other university emails (informational)
+  const infoEmails = gmailResult.universityEmails.filter(e => !e.needsResponse).slice(0, 2);
+  if (infoEmails.length > 0) {
     parts.push('');
     parts.push(`🎓 <b>University Emails</b>`);
-    uniEmails.forEach(e => parts.push(`  • ${esc(e.subject)}`));
+    infoEmails.forEach(e => parts.push(`  • ${esc(e.subject)}`));
   }
 
   // Affirmation
@@ -365,15 +384,22 @@ async function sendAfternoonCheckin(data: DashboardData, refreshToken: string | 
   const accessToken = refreshToken ? await getAccessToken(refreshToken) : null;
   const gmailResult = accessToken
     ? await scanGmail(accessToken, 9)
-    : { universityEmails: [], billAlerts: [], urgentEmails: [] };
+    : { universityEmails: [], billAlerts: [], urgentEmails: [], needsReplyEmails: [] };
 
-  // Save new university emails
-  if (gmailResult.universityEmails.length > 0) {
-    const newEmails = gmailResult.universityEmails.map(e => ({
-      id: e.id, from: e.from, subject: e.subject, snippet: e.snippet, receivedAt: e.receivedAt,
-    }));
+  // Save new scanned emails to DB
+  const allScanned = [
+    ...gmailResult.universityEmails,
+    ...gmailResult.needsReplyEmails.filter(e => !gmailResult.universityEmails.some(u => u.id === e.id)),
+  ];
+  if (allScanned.length > 0) {
     const existing = new Set((data.universityEmails ?? []).map(e => e.id));
-    const toAdd = newEmails.filter(e => !existing.has(e.id));
+    const toAdd = allScanned
+      .filter(e => !existing.has(e.id))
+      .map(e => ({
+        id: e.id, from: e.from, subject: e.subject, snippet: e.snippet,
+        receivedAt: e.receivedAt, threadId: e.threadId, messageId: e.messageId,
+        needsResponse: e.needsResponse,
+      }));
     if (toAdd.length > 0) {
       await saveUserData(USER_EMAIL, {
         ...data,

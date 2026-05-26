@@ -3,6 +3,7 @@ import { initDb, loadUserData, saveUserData, loadUserToken } from '@/lib/db';
 import { sendMessage, requestLocation, removeKeyboard } from '@/lib/telegram';
 import { getWeather, reverseGeocode } from '@/lib/weather';
 import { generateQuiz, findAndSummarize, getRandomQuote, getLowMoodEncouragement } from '@/lib/ai';
+import { sendGmailMessage } from '@/lib/gmail';
 import { format, startOfWeek, addHours, addMinutes } from 'date-fns';
 import type { DashboardData, Task, Reminder, Expense, JournalEntry, MoodEntry, UserLocation } from '@/lib/types';
 
@@ -358,6 +359,68 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const result = safeCalc(expr);
     await sendMessage(CHAT_ID, `🧮 <code>${esc(expr)}</code> = <b>${esc(result)}</b>`);
 
+  // ── reply [sender] [message] ──────────────────────────────────────────────
+  } else if (cmd.startsWith('reply ')) {
+    const match = raw.match(/^reply\s+(\S+)\s+([\s\S]+)/i);
+    if (!match) {
+      await sendMessage(CHAT_ID, '❓ Format: <code>reply [sender] your message</code>\nSender can be a name, email, or part of either.');
+    } else {
+      const senderHint = match[1].toLowerCase();
+      const body = match[2].trim();
+      const stored = data.universityEmails ?? [];
+      const matched = stored.find(e =>
+        e.from.toLowerCase().includes(senderHint) ||
+        e.subject.toLowerCase().includes(senderHint)
+      );
+      if (!matched) {
+        await sendMessage(CHAT_ID, `❌ No stored email matching "<b>${esc(match[1])}</b>". Check your morning briefing.`);
+      } else {
+        const refreshToken = await loadUserToken(USER_EMAIL);
+        const accessToken = refreshToken ? await getAccessToken(refreshToken) : null;
+        if (!accessToken) {
+          await sendMessage(CHAT_ID, '❌ Could not get Gmail access. Try signing in again.');
+        } else {
+          const subject = matched.subject.startsWith('Re:') ? matched.subject : `Re: ${matched.subject}`;
+          const toEmail = matched.from.match(/<([^>]+)>/)?.[1] ?? matched.from;
+          const sent = await sendGmailMessage(accessToken, {
+            to: toEmail, subject, body,
+            inReplyTo: matched.messageId,
+            threadId: matched.threadId,
+          });
+          if (sent) {
+            await sendMessage(CHAT_ID, `✅ <b>Reply sent!</b>\nTo: ${esc(matched.from)}\nSubject: ${esc(subject)}`);
+          } else {
+            await sendMessage(CHAT_ID, '❌ Failed to send reply. Check Gmail access and try again.');
+          }
+        }
+      }
+    }
+
+  // ── email [recipient] re: [subject] | [body] ──────────────────────────────
+  } else if (cmd.startsWith('email ')) {
+    const match = raw.match(/^email\s+(\S+)\s+re:\s+([\s\S]+)/i);
+    if (!match) {
+      await sendMessage(CHAT_ID, '❓ Format: <code>email recipient@example.com re: Subject | Body text</code>\n<i>Use | to separate subject from body. Without |, the text is used as both.</i>');
+    } else {
+      const to = match[1].trim();
+      const rest = match[2].trim();
+      const pipeIdx = rest.indexOf(' | ');
+      const subject = pipeIdx >= 0 ? rest.slice(0, pipeIdx).trim() : rest.trim();
+      const body = pipeIdx >= 0 ? rest.slice(pipeIdx + 3).trim() : rest.trim();
+      const refreshToken = await loadUserToken(USER_EMAIL);
+      const accessToken = refreshToken ? await getAccessToken(refreshToken) : null;
+      if (!accessToken) {
+        await sendMessage(CHAT_ID, '❌ Could not get Gmail access. Try signing in again.');
+      } else {
+        const sent = await sendGmailMessage(accessToken, { to, subject, body });
+        if (sent) {
+          await sendMessage(CHAT_ID, `✅ <b>Email sent!</b>\nTo: ${esc(to)}\nSubject: ${esc(subject)}`);
+        } else {
+          await sendMessage(CHAT_ID, '❌ Failed to send. Check the address and try again.');
+        }
+      }
+    }
+
   // ── motivate me ───────────────────────────────────────────────────────────
   } else if (cmd === 'motivate me' || cmd === 'motivate') {
     await sendMessage(CHAT_ID, `💪 <b>Power Quote</b>\n\n${getRandomQuote()}`);
@@ -381,6 +444,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       `<b>Info:</b> <code>weather this week</code> · <code>find [topic]</code>`,
       `<code>define [word]</code> · <code>translate [text]</code> · <code>calculate [math]</code>`,
       `<code>directions to [place]</code>`,
+      ``,
+      `<b>Email:</b> <code>reply [sender] your message</code>`,
+      `<code>email to@example.com re: Subject | Body</code>`,
       ``,
       `<b>Links:</b> <code>open canvas</code> · <code>open gmail</code> · <code>open calendar</code>`,
       `<code>open notebooklm</code> · <code>open youtube</code> · <code>open dashboard</code>`,
