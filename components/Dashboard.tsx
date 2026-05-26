@@ -54,6 +54,17 @@ function migrateData(raw: Record<string, any>): DashboardData {
     }
   }
 
+  // Ensure new top-level arrays exist for older saved data
+  raw = {
+    mood: [],
+    journal: [],
+    expenses: [],
+    reminders: [],
+    savedArticles: [],
+    universityEmails: [],
+    ...raw,
+  };
+
   return raw as DashboardData;
 }
 import WeeklyView from './weekly/WeeklyView';
@@ -169,10 +180,19 @@ export default function Dashboard() {
       {/* Content */}
       <main className="max-w-7xl mx-auto px-4 py-6">
         {tab === 'weekly' && (
-          <WeeklyView data={data.weekly} onChange={v => update('weekly', v)} />
+          <WeeklyView
+            data={data.weekly}
+            mood={data.mood ?? []}
+            onChange={v => update('weekly', v)}
+            onMoodChange={v => update('mood', v)}
+          />
         )}
         {tab === 'quarterly' && (
-          <QuarterlyView data={data.quarterly} onChange={v => update('quarterly', v)} />
+          <QuarterlyView
+            data={data.quarterly}
+            expenses={data.expenses ?? []}
+            onChange={v => update('quarterly', v)}
+          />
         )}
         {tab === 'books' && (
           <BookTracker books={data.books} onChange={v => update('books', v)} />
@@ -181,7 +201,11 @@ export default function Dashboard() {
           <BucketList items={data.bucketList} onChange={v => update('bucketList', v)} />
         )}
         {tab === 'school' && (
-          <SchoolProgress data={data.school} onChange={v => update('school', v)} />
+          <SchoolProgress
+            data={data.school}
+            universityEmails={data.universityEmails ?? []}
+            onChange={v => update('school', v)}
+          />
         )}
       </main>
     </div>

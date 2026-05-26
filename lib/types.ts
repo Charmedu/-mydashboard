@@ -3,6 +3,7 @@ export interface Task {
   text: string;
   done: boolean;
   category?: string;
+  dueDate?: string; // ISO datetime, set when rescheduled via Eva
 }
 
 export interface Habit {
@@ -170,11 +171,60 @@ export interface SchoolData {
   completedCredits: number;
 }
 
+export interface MoodEntry {
+  id: string;
+  date: string; // "yyyy-MM-dd"
+  score: number; // 1–5
+}
+
+export interface JournalEntry {
+  id: string;
+  text: string;
+  timestamp: string; // ISO datetime
+}
+
+export interface Expense {
+  id: string;
+  amount: number;
+  category: string;
+  description?: string;
+  date: string; // "yyyy-MM-dd"
+}
+
+export interface Reminder {
+  id: string;
+  text: string;
+  dueAt: string; // ISO datetime
+  sent: boolean;
+  createdAt: string;
+}
+
+export interface SavedArticle {
+  id: string;
+  url: string;
+  title?: string;
+  savedAt: string;
+}
+
+export interface UniversityEmail {
+  id: string;
+  from: string;
+  subject: string;
+  snippet: string;
+  receivedAt: string;
+}
+
 export interface DashboardData {
   weekly: WeeklyData;
   quarterly: Record<string, QuarterlyData>; // keyed by "YYYY-QN"
   books: Book[];
   bucketList: BucketItem[];
   school: SchoolData;
+  mood: MoodEntry[];
+  journal: JournalEntry[];
+  expenses: Expense[];
+  reminders: Reminder[];
+  savedArticles: SavedArticle[];
+  universityEmails: UniversityEmail[];
   lastSaved?: string;
 }

@@ -1,22 +1,24 @@
 'use client';
 
 import { useState } from 'react';
-import { SchoolData } from '@/lib/types';
+import { SchoolData, UniversityEmail } from '@/lib/types';
 import { GraduationCap } from 'lucide-react';
 import SemesterView from './SemesterView';
 import RemainingCourses from './RemainingCourses';
 import CollegeComparison from './CollegeComparison';
 import CanvasSync from './CanvasSync';
+import UniversityEmails from './UniversityEmails';
 
 interface Props {
   data: SchoolData;
+  universityEmails: UniversityEmail[];
   onChange: (data: SchoolData) => void;
 }
 
 const TABS = ['Semesters', 'Degree Plan', 'College Search'] as const;
 type SchoolTab = typeof TABS[number];
 
-export default function SchoolProgress({ data, onChange }: Props) {
+export default function SchoolProgress({ data, universityEmails, onChange }: Props) {
   const [tab, setTab] = useState<SchoolTab>('Semesters');
 
   const allCourses = data.semesters.flatMap(s => s.courses);
@@ -124,6 +126,10 @@ export default function SchoolProgress({ data, onChange }: Props) {
           colleges={data.colleges}
           onChange={colleges => onChange({ ...data, colleges })}
         />
+      )}
+
+      {universityEmails.length > 0 && (
+        <UniversityEmails emails={universityEmails} />
       )}
     </div>
   );

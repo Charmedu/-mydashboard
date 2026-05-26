@@ -1,16 +1,19 @@
 'use client';
 
-import { WeeklyData } from '@/lib/types';
+import { WeeklyData, MoodEntry } from '@/lib/types';
 import TaskChecklist from './TaskChecklist';
 import HabitTracker, { computeHabitScore } from './HabitTracker';
 import WeeklyFocus from './WeeklyFocus';
 import CalendarEvents from './CalendarEvents';
+import MoodTracker from './MoodTracker';
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, parseISO } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Props {
   data: WeeklyData;
+  mood: MoodEntry[];
   onChange: (data: WeeklyData) => void;
+  onMoodChange: (entries: MoodEntry[]) => void;
 }
 
 function ScoreBadge({ label, pct }: { label: string; pct: number | null }) {
@@ -46,7 +49,7 @@ function ScoreBadge({ label, pct }: { label: string; pct: number | null }) {
   );
 }
 
-export default function WeeklyView({ data, onChange }: Props) {
+export default function WeeklyView({ data, mood, onChange, onMoodChange }: Props) {
   const weekStart = parseISO(data.weekOf);
   const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
 
@@ -140,6 +143,11 @@ export default function WeeklyView({ data, onChange }: Props) {
             onChange={habits => onChange({ ...data, habits })}
           />
         </div>
+      </div>
+
+      {/* Mood tracker */}
+      <div className="max-w-sm">
+        <MoodTracker entries={mood} onChange={onMoodChange} />
       </div>
     </div>
   );

@@ -1,8 +1,11 @@
 {
   "crons": [
-    {
-      "path": "/api/telegram/send",
-      "schedule": "15 11 * * *"
-    }
+    { "path": "/api/telegram/send",         "schedule": "0 12 * * *"   },
+    { "path": "/api/telegram/afternoon",    "schedule": "0 21 * * *"   },
+    { "path": "/api/telegram/evening",      "schedule": "0 2 * * *"    },
+    { "path": "/api/telegram/weekly-spend", "schedule": "0 23 * * 0"   },
+    { "path": "/api/telegram/reflection",   "schedule": "0 0 * * 1"    },
+    { "path": "/api/telegram/monthly",      "schedule": "0 12 1 * *"   },
+    { "path": "/api/telegram/reminders",    "schedule": "0 * * * *"    }
   ]
 }

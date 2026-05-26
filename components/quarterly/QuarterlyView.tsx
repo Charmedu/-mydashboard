@@ -1,15 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { QuarterlyData } from '@/lib/types';
+import { QuarterlyData, Expense } from '@/lib/types';
 import QuarterlyGoals from './QuarterlyGoals';
 import Finances from './Finances';
 import Achievements from './Achievements';
 import ParkingLot from './ParkingLot';
+import ExpenseLog from './ExpenseLog';
 import { ChevronLeft, ChevronRight, Target, CreditCard, PiggyBank, Trophy } from 'lucide-react';
 
 interface Props {
   data: Record<string, QuarterlyData>;
+  expenses: Expense[];
   onChange: (data: Record<string, QuarterlyData>) => void;
 }
 
@@ -38,7 +40,7 @@ function fmt(n: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
 }
 
-export default function QuarterlyView({ data, onChange }: Props) {
+export default function QuarterlyView({ data, expenses, onChange }: Props) {
   const current = thisQuarter();
   const [activeQ, setActiveQ] = useState(current);
 
@@ -189,6 +191,9 @@ export default function QuarterlyView({ data, onChange }: Props) {
           onChange={parkingLot => update({ ...qData, parkingLot })}
         />
       </div>
+
+      {/* Expense log */}
+      <ExpenseLog expenses={expenses} />
     </div>
   );
 }

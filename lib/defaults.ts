@@ -30,6 +30,12 @@ export function getDefaultData(): DashboardData {
     },
     books: [],
     bucketList: [],
+    mood: [],
+    journal: [],
+    expenses: [],
+    reminders: [],
+    savedArticles: [],
+    universityEmails: [],
     school: {
       semesters: [],
       remainingCourses: [],
