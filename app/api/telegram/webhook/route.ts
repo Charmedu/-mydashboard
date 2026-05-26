@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { initDb, loadUserData, saveUserData, loadUserToken } from '@/lib/db';
-import { sendMessage } from '@/lib/telegram';
-import { getWeather } from '@/lib/weather';
+import { sendMessage, requestLocation, removeKeyboard } from '@/lib/telegram';
+import { getWeather, reverseGeocode } from '@/lib/weather';
 import { generateQuiz, findAndSummarize, getRandomQuote, getLowMoodEncouragement } from '@/lib/ai';
 import { format, startOfWeek, addHours, addMinutes } from 'date-fns';
-import type { DashboardData, Task, Reminder, Expense, JournalEntry, MoodEntry } from '@/lib/types';
+import type { DashboardData, Task, Reminder, Expense, JournalEntry, MoodEntry, UserLocation } from '@/lib/types';
 
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID ?? '';
 const USER_EMAIL = process.env.USER_EMAIL ?? '';
@@ -108,7 +108,11 @@ async function checkCalendarConflict(accessToken: string, dt: Date): Promise<str
   } catch { return []; }
 }
 
-interface TelegramMessage { chat: { id: number }; text?: string; }
+interface TelegramMessage {
+  chat: { id: number };
+  text?: string;
+  location?: { latitude: number; longitude: number };
+}
 interface TelegramUpdate { message?: TelegramMessage; }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
@@ -123,11 +127,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   catch { return NextResponse.json({ ok: true }); }
 
   const msg = update?.message;
-  if (!msg?.text) return NextResponse.json({ ok: true });
+  if (!msg) return NextResponse.json({ ok: true });
   if (String(msg.chat.id) !== CHAT_ID) return NextResponse.json({ ok: true });
-
-  const raw = (msg.text.startsWith('/') ? msg.text.slice(1) : msg.text).trim();
-  const cmd = raw.toLowerCase();
 
   await initDb();
   const data = await loadUserData(USER_EMAIL);
@@ -135,6 +136,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     await sendMessage(CHAT_ID, '❌ Could not load your dashboard data.');
     return NextResponse.json({ ok: true });
   }
+
+  // Handle location messages (user tapped "Share My Location")
+  if (msg.location) {
+    await handleLocation(msg.location.latitude, msg.location.longitude, data);
+    return NextResponse.json({ ok: true });
+  }
+
+  if (!msg.text) return NextResponse.json({ ok: true });
+
+  const raw = (msg.text.startsWith('/') ? msg.text.slice(1) : msg.text).trim();
+  const cmd = raw.toLowerCase();
 
   // ── done ─────────────────────────────────────────────────────────────────
   if (cmd.startsWith('done')) {
@@ -144,19 +156,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   } else if (/^[1-5]$/.test(cmd)) {
     await handleMood(parseInt(cmd), data);
 
-  // ── weather this week ────────────────────────────────────────────────────
+  // ── weather ───────────────────────────────────────────────────────────────
   } else if (cmd === 'weather' || cmd === 'weather this week' || cmd === 'weather week') {
-    const w = await getWeather();
-    if (!w) { await sendMessage(CHAT_ID, '❌ Could not fetch weather right now.'); }
-    else {
-      const lines = [
-        `🌡️ <b>7-Day Forecast — Arlington, TX</b>`,
-        `<i>Today: ${w.current.emoji} ${w.current.temp}°F · ${w.current.description}</i>`,
-        '',
-        ...w.week.map(d => `${d.emoji} <b>${d.date}</b>  ${d.high}° / ${d.low}°  ${d.description}  💧${d.rainChance}%`),
-      ];
-      await sendMessage(CHAT_ID, lines.join('\n'));
-    }
+    await requestLocation(CHAT_ID);
 
   // ── study timer ──────────────────────────────────────────────────────────
   } else if (cmd.startsWith('study timer')) {
@@ -297,9 +299,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // ── save article ─────────────────────────────────────────────────────────
   } else if (cmd.startsWith('save article ')) {
     const url = raw.slice(13).trim();
-    const article = { id: crypto.randomUUID(), url, savedAt: new Date().toISOString() };
+    const title = await fetchPageTitle(url);
+    const article = { id: crypto.randomUUID(), url, title: title ?? undefined, savedAt: new Date().toISOString() };
     await saveUserData(USER_EMAIL, { ...data, savedArticles: [...(data.savedArticles ?? []), article] });
-    await sendMessage(CHAT_ID, `📌 Article saved to your reading list.\n<a href="${url}">${esc(url)}</a>`);
+    if (title) {
+      await sendMessage(CHAT_ID, `📌 <b>${esc(title)}</b>\nSaved to reading list. <a href="${url}">${esc(url.length > 60 ? url.slice(0, 60) + '…' : url)}</a>`);
+    } else {
+      await sendMessage(CHAT_ID, `📌 Article saved to reading list.\n<a href="${url}">${esc(url)}</a>`);
+    }
 
   // ── find / search ─────────────────────────────────────────────────────────
   } else if (cmd.startsWith('find ')) {
@@ -386,6 +393,55 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   return NextResponse.json({ ok: true });
+}
+
+// ── helpers ──────────────────────────────────────────────────────────────────
+
+async function fetchPageTitle(url: string): Promise<string | null> {
+  try {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; MyDashboard/1.0)' },
+      signal: controller.signal,
+    });
+    clearTimeout(id);
+    if (!res.ok) return null;
+    const html = await res.text();
+    const match = html.match(/<title[^>]*>([^<]{1,200})<\/title>/i);
+    if (!match) return null;
+    return match[1].trim()
+      .replace(/\s+/g, ' ')
+      .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+      .replace(/&#39;/g, "'").replace(/&quot;/g, '"');
+  } catch { return null; }
+}
+
+async function handleLocation(lat: number, lon: number, data: DashboardData): Promise<void> {
+  const location: UserLocation = { lat, lng: lon, timestamp: new Date().toISOString() };
+  await saveUserData(USER_EMAIL, { ...data, lastLocation: location });
+
+  const [weather, cityName] = await Promise.all([
+    getWeather(lat, lon),
+    reverseGeocode(lat, lon),
+  ]);
+
+  const locationLabel = cityName ?? `${lat.toFixed(3)}, ${lon.toFixed(3)}`;
+
+  if (!weather) {
+    await removeKeyboard(CHAT_ID, `❌ Could not fetch weather for ${esc(locationLabel)}.`);
+    return;
+  }
+
+  const lines = [
+    `🌡️ <b>${esc(locationLabel)} — 7-Day Forecast</b>`,
+    `<i>Now: ${weather.current.emoji} ${weather.current.temp}°F · ${weather.current.description}</i>`,
+    weather.current.willRain ? `☂️ ${weather.current.rainChance}% rain chance today` : '',
+    '',
+    ...weather.week.map(d => `${d.emoji} <b>${d.date}</b>  ${d.high}° / ${d.low}°  ${d.description}  💧${d.rainChance}%`),
+  ].filter(l => l !== '');
+
+  await removeKeyboard(CHAT_ID, lines.join('\n'));
 }
 
 // ── command handlers ─────────────────────────────────────────────────────────

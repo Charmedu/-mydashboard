@@ -1,8 +1,7 @@
 import { format, parseISO } from 'date-fns';
 
-// Arlington, TX
-const LAT = 32.7357;
-const LON = -97.1081;
+const DEFAULT_LAT = 32.7357; // Arlington, TX
+const DEFAULT_LON = -97.1081;
 
 const WMO: Record<number, { desc: string; emoji: string }> = {
   0: { desc: 'Clear sky', emoji: '☀️' },
@@ -60,11 +59,27 @@ export interface WeatherData {
   week: WeatherDay[];
 }
 
-export async function getWeather(): Promise<WeatherData | null> {
+export async function reverseGeocode(lat: number, lon: number): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
+      { headers: { 'User-Agent': 'MyDashboard/1.0 (charmainemroach@gmail.com)' } }
+    );
+    if (!res.ok) return null;
+    const d = await res.json() as { address?: { city?: string; town?: string; suburb?: string; state?: string } };
+    const addr = d.address;
+    if (!addr) return null;
+    const city = addr.city ?? addr.town ?? addr.suburb;
+    if (city && addr.state) return `${city}, ${addr.state}`;
+    return city ?? null;
+  } catch { return null; }
+}
+
+export async function getWeather(lat = DEFAULT_LAT, lon = DEFAULT_LON): Promise<WeatherData | null> {
   try {
     const url = new URL('https://api.open-meteo.com/v1/forecast');
-    url.searchParams.set('latitude', String(LAT));
-    url.searchParams.set('longitude', String(LON));
+    url.searchParams.set('latitude', String(lat));
+    url.searchParams.set('longitude', String(lon));
     url.searchParams.set('current', 'temperature_2m,weather_code');
     url.searchParams.set('daily', 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max');
     url.searchParams.set('temperature_unit', 'fahrenheit');

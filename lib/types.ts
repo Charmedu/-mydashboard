@@ -214,6 +214,12 @@ export interface UniversityEmail {
   receivedAt: string;
 }
 
+export interface UserLocation {
+  lat: number;
+  lng: number;
+  timestamp: string; // ISO datetime when last shared via Telegram
+}
+
 export interface DashboardData {
   weekly: WeeklyData;
   quarterly: Record<string, QuarterlyData>; // keyed by "YYYY-QN"
@@ -226,5 +232,6 @@ export interface DashboardData {
   reminders: Reminder[];
   savedArticles: SavedArticle[];
   universityEmails: UniversityEmail[];
+  lastLocation?: UserLocation; // most recent Telegram location share
   lastSaved?: string;
 }
