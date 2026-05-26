@@ -28,6 +28,8 @@ async function refreshGoogleToken(
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true,
+  pages: { signIn: '/' },
   providers: [
     Google({
       clientId: process.env.AUTH_GOOGLE_ID,
