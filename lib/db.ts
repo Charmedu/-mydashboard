@@ -15,6 +15,31 @@ export async function initDb(): Promise<void> {
       updated_at TIMESTAMPTZ DEFAULT NOW()
     )
   `;
+  await sql`
+    CREATE TABLE IF NOT EXISTS user_tokens (
+      user_id TEXT PRIMARY KEY,
+      google_refresh_token TEXT,
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
+}
+
+export async function saveUserToken(userId: string, refreshToken: string): Promise<void> {
+  const sql = getDb();
+  await sql`
+    INSERT INTO user_tokens (user_id, google_refresh_token, updated_at)
+    VALUES (${userId}, ${refreshToken}, NOW())
+    ON CONFLICT (user_id)
+    DO UPDATE SET google_refresh_token = ${refreshToken}, updated_at = NOW()
+  `;
+}
+
+export async function loadUserToken(userId: string): Promise<string | null> {
+  const sql = getDb();
+  const rows = await sql`
+    SELECT google_refresh_token FROM user_tokens WHERE user_id = ${userId}
+  `;
+  return (rows[0]?.google_refresh_token as string) ?? null;
 }
 
 export async function loadUserData(userId: string): Promise<DashboardData | null> {

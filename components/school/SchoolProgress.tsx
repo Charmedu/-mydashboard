@@ -6,6 +6,7 @@ import { GraduationCap } from 'lucide-react';
 import SemesterView from './SemesterView';
 import RemainingCourses from './RemainingCourses';
 import CollegeComparison from './CollegeComparison';
+import CanvasSync from './CanvasSync';
 
 interface Props {
   data: SchoolData;
@@ -82,6 +83,12 @@ export default function SchoolProgress({ data, onChange }: Props) {
           <span>{Math.max(0, data.totalCreditsRequired - data.completedCredits - completedPlanCredits)} remaining</span>
         </div>
       </div>
+
+      {/* Canvas sync bar */}
+      <CanvasSync
+        semesters={data.semesters}
+        onChange={semesters => onChange({ ...data, semesters })}
+      />
 
       {/* Sub-tabs */}
       <div className="flex gap-1 bg-slate-100 rounded-lg p-1 w-fit">
