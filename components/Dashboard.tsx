@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useSession, signOut } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
+import { signOutAction } from '@/app/actions/auth';
 import { Calendar, Target, BookOpen, Star, GraduationCap, LogOut, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { DashboardData } from '@/lib/types';
 import { getDefaultData } from '@/lib/defaults';
@@ -151,13 +152,15 @@ export default function Dashboard() {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={session.user.image} alt="" className="w-7 h-7 rounded-full ring-2 ring-slate-700" />
               )}
-              <button
-                onClick={() => signOut()}
-                className="text-slate-400 hover:text-white transition-colors"
-                title="Sign out"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
+              <form action={signOutAction}>
+                <button
+                  type="submit"
+                  className="text-slate-400 hover:text-white transition-colors"
+                  title="Sign out (signing back in will re-ask for Calendar permissions)"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </form>
             </div>
           </div>
         </div>
