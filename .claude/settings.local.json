@@ -15,7 +15,8 @@
       "Bash(npx tsc *)",
       "Bash(npx next *)",
       "Bash(Remove-Item -Recurse -Force \"C:\\\\Users\\\\cmoro\\\\OneDrive\\\\Desktop\\\\my-dashboard\\\\my-dashboard\\\\.next\" -ErrorAction SilentlyContinue)",
-      "Bash(Write-Host \"Cleared\")"
+      "Bash(Write-Host \"Cleared\")",
+      "Bash(node *)"
     ]
   }
 }
