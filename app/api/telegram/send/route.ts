@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { loadUserData, loadUserToken } from '@/lib/db';
+import { initDb, loadUserData, loadUserToken } from '@/lib/db';
 import { sendMessage } from '@/lib/telegram';
 import { format } from 'date-fns';
 import { Task } from '@/lib/types';
@@ -121,6 +121,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    await initDb();
     const [data, refreshToken] = await Promise.all([
       loadUserData(USER_EMAIL),
       loadUserToken(USER_EMAIL),

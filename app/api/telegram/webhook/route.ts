@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { loadUserData, saveUserData } from '@/lib/db';
+import { initDb, loadUserData, saveUserData } from '@/lib/db';
 import { sendMessage } from '@/lib/telegram';
 
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID ?? '';
@@ -52,6 +52,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 }
 
 async function handleDone(cmd: string): Promise<void> {
+  await initDb();
   const data = await loadUserData(USER_EMAIL);
   if (!data) {
     await sendMessage(CHAT_ID, '❌ Could not load your dashboard data.');
