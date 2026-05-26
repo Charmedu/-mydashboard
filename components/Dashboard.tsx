@@ -6,6 +6,30 @@ import { Calendar, Target, BookOpen, Star, GraduationCap, LogOut, CheckCircle, A
 import { DashboardData } from '@/lib/types';
 import { getDefaultData } from '@/lib/defaults';
 import { useAutoSave, SaveStatus } from '@/lib/useAutoSave';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function migrateData(raw: Record<string, any>): DashboardData {
+  if (!raw?.weekly?.habits) return raw as DashboardData;
+  return {
+    ...raw,
+    weekly: {
+      ...raw.weekly,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      habits: raw.weekly.habits.map((h: Record<string, any>) => {
+        if (h.completions !== undefined) return h;
+        return {
+          id: h.id,
+          name: h.name,
+          icon: h.icon ?? '🎯',
+          color: h.color ?? '#6366f1',
+          section: h.section ?? 'daily',
+          weeklyGoal: h.weeklyGoal ?? 7,
+          completions: h.days ? { [raw.weekly.weekOf]: h.days } : {},
+        };
+      }),
+    },
+  } as DashboardData;
+}
 import WeeklyView from './weekly/WeeklyView';
 import QuarterlyView from './quarterly/QuarterlyView';
 import BookTracker from './books/BookTracker';
@@ -42,7 +66,7 @@ export default function Dashboard() {
   useEffect(() => {
     fetch('/api/data')
       .then(r => r.json())
-      .then(d => { setData(d); setLoading(false); })
+      .then(d => { setData(migrateData(d)); setLoading(false); })
       .catch(() => { setData(getDefaultData()); setLoading(false); });
   }, []);
 

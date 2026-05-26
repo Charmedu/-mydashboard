@@ -12,9 +12,9 @@ export function getDefaultData(): DashboardData {
       weekOf,
       tasks: [],
       habits: [
-        { id: '1', name: 'Exercise', days: [false,false,false,false,false,false,false], color: '#10b981' },
-        { id: '2', name: 'Read', days: [false,false,false,false,false,false,false], color: '#6366f1' },
-        { id: '3', name: 'Water (8 cups)', days: [false,false,false,false,false,false,false], color: '#3b82f6' },
+        { id: '1', name: 'Exercise', icon: '💪', color: '#10b981', section: 'daily', weeklyGoal: 5, completions: {} },
+        { id: '2', name: 'Read', icon: '📚', color: '#6366f1', section: 'daily', weeklyGoal: 7, completions: {} },
+        { id: '3', name: 'Drink Water', icon: '💧', color: '#3b82f6', section: 'daily', weeklyGoal: 7, completions: {} },
       ],
       focus: '',
       goals: [],

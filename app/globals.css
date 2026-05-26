@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes confetti-burst {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.2) rotate(var(--rot));
+  }
+}
+
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;

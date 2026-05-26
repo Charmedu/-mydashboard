@@ -8,8 +8,11 @@ export interface Task {
 export interface Habit {
   id: string;
   name: string;
-  days: boolean[];
+  icon: string;
   color: string;
+  section: 'daily' | 'other';
+  weeklyGoal: number; // 1–7
+  completions: Record<string, boolean[]>; // weekOf ISO date → [Mon…Sun]
 }
 
 export interface Goal {

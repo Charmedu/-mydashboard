@@ -6,7 +6,16 @@
       "PowerShell(cd \"C:\\\\Users\\\\cmoro\\\\OneDrive\\\\Desktop\\\\my-dashboard\\\\my-dashboard\"; $env:DATABASE_URL=\"postgresql://placeholder:placeholder@localhost/db\"; $env:AUTH_SECRET=\"placeholder-secret-32chars-minimum-xxx\"; $env:AUTH_GOOGLE_ID=\"placeholder\"; $env:AUTH_GOOGLE_SECRET=\"placeholder\"; npx next build 2>&1 | Select-Object -Last 30)",
       "PowerShell(Remove-Item *)",
       "Bash(git init *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git config *)",
+      "Bash(git remote *)",
+      "Bash(git branch *)",
+      "Bash(git push *)",
+      "Bash(npx tsc *)",
+      "Bash(npx next *)",
+      "Bash(Remove-Item -Recurse -Force \"C:\\\\Users\\\\cmoro\\\\OneDrive\\\\Desktop\\\\my-dashboard\\\\my-dashboard\\\\.next\" -ErrorAction SilentlyContinue)",
+      "Bash(Write-Host \"Cleared\")"
     ]
   }
 }
