@@ -7,7 +7,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const accessToken = (session as unknown as Record<string, unknown>).accessToken as string | undefined;
+  const s = session as unknown as Record<string, unknown>;
+  if (s.error === 'RefreshAccessTokenError') {
+    return NextResponse.json({ error: 'RefreshAccessTokenError' }, { status: 401 });
+  }
+
+  const accessToken = s.accessToken as string | undefined;
   if (!accessToken) {
     return NextResponse.json({ error: 'No calendar access' }, { status: 403 });
   }

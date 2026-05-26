@@ -36,6 +36,7 @@ export default function CalendarEvents({ weekStart }: Props) {
       const res = await fetch(
         `/api/calendar?timeMin=${start.toISOString()}&timeMax=${end.toISOString()}`
       );
+      if (res.status === 401) { setError('session-expired'); return; }
       if (res.status === 403) { setError('no-access'); return; }
       if (!res.ok) throw new Error('fetch failed');
       const data = await res.json();
@@ -49,6 +50,22 @@ export default function CalendarEvents({ weekStart }: Props) {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchEvents(); }, [weekStart]);
+
+  if (error === 'session-expired') {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Calendar className="w-4 h-4 text-blue-500" />
+          <h3 className="font-semibold text-slate-800">Google Calendar</h3>
+        </div>
+        <div className="text-center py-4 space-y-2">
+          <AlertCircle className="w-8 h-8 text-red-400 mx-auto" />
+          <p className="text-sm text-slate-600">Session expired.</p>
+          <p className="text-xs text-slate-400">Please sign out and sign in again to restore calendar access.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (error === 'no-access') {
     return (
