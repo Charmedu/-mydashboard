@@ -4,7 +4,9 @@ import { setWebhook } from '@/lib/telegram';
 // Hit GET /api/telegram/setup once after deploying to register the webhook.
 // Telegram will then POST all bot updates to /api/telegram/webhook.
 export async function GET(): Promise<NextResponse> {
-  const base = process.env.NEXTAUTH_URL ?? process.env.VERCEL_URL;
+  const rawBase = process.env.NEXTAUTH_URL ?? process.env.VERCEL_URL;
+  // VERCEL_URL is hostname-only (no protocol); NEXTAUTH_URL should already have https://
+  const base = rawBase && !rawBase.startsWith('http') ? `https://${rawBase}` : rawBase;
   if (!base) {
     return NextResponse.json(
       { error: 'Set NEXTAUTH_URL (or VERCEL_URL) so we know the public URL' },

@@ -118,25 +118,45 @@ interface TelegramUpdate { message?: TelegramMessage; }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   if (WEBHOOK_SECRET) {
-    if (req.headers.get('x-telegram-bot-api-secret-token') !== WEBHOOK_SECRET) {
+    const incoming = req.headers.get('x-telegram-bot-api-secret-token');
+    if (incoming !== WEBHOOK_SECRET) {
+      console.error('[webhook] Secret mismatch — received:', incoming ? `"${incoming.slice(0, 8)}…"` : '(none)');
       return NextResponse.json({ ok: false }, { status: 403 });
     }
   }
 
   let update: TelegramUpdate;
   try { update = await req.json() as TelegramUpdate; }
-  catch { return NextResponse.json({ ok: true }); }
+  catch (e) {
+    console.error('[webhook] Failed to parse JSON body:', e);
+    return NextResponse.json({ ok: true });
+  }
 
   const msg = update?.message;
-  if (!msg) return NextResponse.json({ ok: true });
-  if (String(msg.chat.id) !== CHAT_ID) return NextResponse.json({ ok: true });
+  if (!msg) {
+    console.log('[webhook] Update has no .message field — type:', Object.keys(update ?? {}).join(', ') || 'empty');
+    return NextResponse.json({ ok: true });
+  }
+  if (String(msg.chat.id) !== CHAT_ID) {
+    console.error('[webhook] Chat ID mismatch — received:', msg.chat.id, '| expected:', CHAT_ID || '(TELEGRAM_CHAT_ID not set)');
+    return NextResponse.json({ ok: true });
+  }
+
+  if (!USER_EMAIL) {
+    console.error('[webhook] USER_EMAIL env var is not set');
+    await sendMessage(CHAT_ID, '❌ Bot is misconfigured (USER_EMAIL missing).');
+    return NextResponse.json({ ok: true });
+  }
 
   await initDb();
   const data = await loadUserData(USER_EMAIL);
   if (!data) {
+    console.error('[webhook] loadUserData returned null for:', USER_EMAIL);
     await sendMessage(CHAT_ID, '❌ Could not load your dashboard data.');
     return NextResponse.json({ ok: true });
   }
+
+  console.log('[webhook] Processing message from chat', msg.chat.id, '—', msg.text ? `text: "${msg.text.slice(0, 60)}"` : msg.location ? 'location share' : 'other');
 
   // Handle location messages (user tapped "Share My Location")
   if (msg.location) {
