@@ -6,6 +6,7 @@ export const { auth: middleware } = NextAuth(authConfig);
 export const config = {
   // Exclude public API routes from auth middleware:
   // - api/auth     → NextAuth sign-in/callback
-  // - api/telegram → webhook (Telegram POSTs), send (Vercel cron), setup (one-time config)
-  matcher: ['/((?!api/auth|api/telegram|_next/static|_next/image|favicon.ico).*)'],
+  // - api/telegram → webhook (Telegram POSTs), cron, setup
+  // - api/gmail    → test/diagnostic endpoint
+  matcher: ['/((?!api/auth|api/telegram|api/gmail|_next/static|_next/image|favicon.ico).*)'],
 };
