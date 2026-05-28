@@ -6,8 +6,13 @@ const CANVAS_BASE = 'https://canvas.tccd.edu/api/v1';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function canvasFetch(path: string): Promise<any[]> {
-  const token = process.env.CANVAS_API_TOKEN;
-  if (!token) throw new Error('CANVAS_API_TOKEN is not configured');
+  const raw = process.env.CANVAS_API_TOKEN;
+  if (!raw) throw new Error('CANVAS_API_TOKEN is not configured');
+
+  // Strip whitespace and any characters outside the printable ASCII range
+  // that are illegal in HTTP header values (common when copy-pasting tokens).
+  const token = raw.replace(/[^\x21-\x7e]/g, '').trim();
+  if (!token) throw new Error('CANVAS_API_TOKEN is empty after sanitization — check for stray whitespace or encoding issues');
 
   const res = await fetch(`${CANVAS_BASE}${path}`, {
     headers: { Authorization: `Bearer ${token}` },
