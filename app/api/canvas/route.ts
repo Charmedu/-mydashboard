@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 const CANVAS_BASE = 'https://canvas.tccd.edu/api/v1';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
