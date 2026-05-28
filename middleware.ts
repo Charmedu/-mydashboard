@@ -9,4 +9,5 @@ export const config = {
   // - api/telegram → webhook (Telegram POSTs), cron, setup
   // - api/gmail    → test/diagnostic endpoint
   matcher: ['/((?!api/auth|api/telegram|api/gmail|_next/static|_next/image|favicon.ico).*)'],
+  // Note: api/telegram/* is fully excluded above — covers webhook, cron, setup, info
 };
