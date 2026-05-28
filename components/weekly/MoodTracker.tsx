@@ -12,7 +12,7 @@ interface Props {
 const EMOJIS: Record<number, string> = { 1: '😞', 2: '😕', 3: '😐', 4: '😊', 5: '🤩' };
 const LABELS: Record<number, string> = { 1: 'Struggling', 2: 'Bit rough', 3: 'Getting by', 4: 'Pretty good', 5: 'Amazing!' };
 const COLORS: Record<number, string> = {
-  1: '#ef4444', 2: '#f97316', 3: '#b88880', 4: '#10b981', 5: '#5c3e38',
+  1: '#ef4444', 2: '#f97316', 3: '#7a4f47', 4: '#10b981', 5: '#5c3e38',
 };
 
 export default function MoodTracker({ entries, onChange }: Props) {

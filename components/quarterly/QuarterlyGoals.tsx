@@ -22,7 +22,7 @@ const CATEGORIES: { key: keyof GoalsMap; label: string; accent: string; bg: stri
   { key: 'finance',  label: 'Finance',  accent: '#10b981', bg: 'bg-emerald-50 border-emerald-200' },
   { key: 'health',   label: 'Health',   accent: '#d4b0a8', bg: 'bg-rd-bg border-rd-border' },
   { key: 'school',   label: 'School',   accent: '#5c3e38', bg: 'bg-rd-bg border-rd-border' },
-  { key: 'personal', label: 'Personal', accent: '#b88880', bg: 'bg-rd-bg border-rd-border' },
+  { key: 'personal', label: 'Personal', accent: '#7a4f47', bg: 'bg-rd-bg border-rd-border' },
 ];
 
 function GoalSection({ category, goals, onUpdate }: {

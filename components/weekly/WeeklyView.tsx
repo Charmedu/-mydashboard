@@ -18,7 +18,7 @@ interface Props {
 
 function ScoreBadge({ label, pct }: { label: string; pct: number | null }) {
   if (pct === null) return null;
-  const color = pct >= 80 ? '#10b981' : pct >= 50 ? '#d4b0a8' : '#b88880';
+  const color = pct >= 80 ? '#10b981' : pct >= 50 ? '#d4b0a8' : '#7a4f47';
   const radius = 20;
   const circumference = 2 * Math.PI * radius;
   const dash = (pct / 100) * circumference;

@@ -17,7 +17,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   Work:     '#5c3e38',
   Personal: '#d4b0a8',
   Health:   '#10b981',
-  School:   '#b88880',
+  School:   '#7a4f47',
   Finance:  '#4a3230',
   Other:    '#ead8d0',
 };

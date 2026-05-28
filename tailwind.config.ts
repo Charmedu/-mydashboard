@@ -17,7 +17,7 @@ const config: Config = {
           surface: '#ead8d0',
           accent:  '#d4b0a8',
           text:    '#5c3e38',
-          muted:   '#b88880',
+          muted:   '#7a4f47',
           nav:     '#5c3e38',
           dark:    '#4a3230',
         },
