@@ -9,7 +9,6 @@ import type { DashboardData, Task, Reminder, Expense, JournalEntry, MoodEntry, U
 
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID ?? '';
 const USER_EMAIL = process.env.USER_EMAIL ?? '';
-const WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET ?? '';
 
 const QUICK_LINKS: Record<string, string> = {
   canvas: 'https://canvas.tccd.edu',
@@ -117,17 +116,6 @@ interface TelegramMessage {
 interface TelegramUpdate { message?: TelegramMessage; }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  const incoming = req.headers.get('x-telegram-bot-api-secret-token');
-  console.log('[webhook] Incoming secret header:', incoming ? `"${incoming.slice(0, 8)}…"` : '(none)', '| WEBHOOK_SECRET set:', !!WEBHOOK_SECRET);
-
-  if (WEBHOOK_SECRET) {
-    if (incoming !== WEBHOOK_SECRET) {
-      console.error('[webhook] Secret mismatch — REJECTING. Received:', incoming ? `"${incoming.slice(0, 8)}…"` : '(none)');
-      // Temporarily allow through so we can confirm messages arrive; remove this line once secrets are aligned
-      // return NextResponse.json({ ok: false }, { status: 403 });
-    }
-  }
-
   let update: TelegramUpdate;
   try { update = await req.json() as TelegramUpdate; }
   catch (e) {
