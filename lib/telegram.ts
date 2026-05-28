@@ -36,13 +36,25 @@ export async function removeKeyboard(chatId: string, text: string): Promise<void
 export async function setWebhook(
   webhookUrl: string,
   secretToken?: string
-): Promise<{ ok: boolean; description?: string }> {
+): Promise<{ ok: boolean; description?: string; result?: boolean }> {
   const payload: Record<string, string> = { url: webhookUrl };
   if (secretToken) payload.secret_token = secretToken;
   const res = await fetch(`${apiBase()}/setWebhook`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
+    cache: 'no-store',
   });
-  return res.json() as Promise<{ ok: boolean; description?: string }>;
+  const json = await res.json();
+  return json as { ok: boolean; description?: string; result?: boolean };
+}
+
+export async function getWebhookInfo(): Promise<Record<string, unknown>> {
+  try {
+    const res = await fetch(`${apiBase()}/getWebhookInfo`, { cache: 'no-store' });
+    const json = await res.json();
+    return json as Record<string, unknown>;
+  } catch (e) {
+    return { error: String(e) };
+  }
 }
