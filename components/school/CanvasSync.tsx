@@ -42,6 +42,23 @@ function termFromDate(): string {
   return `Fall ${y}`;
 }
 
+// Known non-English Canvas term names → English equivalents
+const TERM_TRANSLATIONS: Record<string, string> = {
+  'فصل دراسي افتراضي': 'Virtual Semester',
+  'الفصل الدراسي الافتراضي': 'Virtual Semester',
+  'فصل الربيع': 'Spring',
+  'فصل الخريف': 'Fall',
+  'فصل الصيف': 'Summer',
+};
+
+function translateTermName(name: string): string {
+  if (TERM_TRANSLATIONS[name]) return TERM_TRANSLATIONS[name];
+  // If the name contains non-ASCII characters (e.g. Arabic script), fall back
+  // to a date-based English label rather than displaying unreadable text.
+  if (/[^\x00-\x7f]/.test(name)) return termFromDate();
+  return name;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapCourse(c: any, rawAssignments: any[]): Course {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -107,7 +124,7 @@ export default function CanvasSync({ semesters, onChange }: Props) {
       if (json.error) throw new Error(json.error);
 
       const firstTerm = json.courses[0]?.course?.term?.name as string | undefined;
-      const termLabel = firstTerm ?? termFromDate();
+      const termLabel = firstTerm ? translateTermName(firstTerm) : termFromDate();
       const semesterName = `Canvas · ${termLabel}`;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
