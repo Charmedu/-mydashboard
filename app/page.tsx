@@ -10,7 +10,7 @@ export default async function Home() {
         <div className="text-center space-y-8 p-8 max-w-sm">
           <div className="space-y-3">
             <h1 className="font-display text-4xl font-bold text-rd-bg tracking-tight">
-              Char&apos;s Command Center
+              Char&apos;s Executive Suite
             </h1>
             <p className="text-rd-accent text-base">Your personal productivity hub</p>
           </div>

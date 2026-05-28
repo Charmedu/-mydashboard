@@ -17,7 +17,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Char's Command Center",
+  title: "Char's Executive Suite",
   description: 'Personal productivity dashboard',
 };
 

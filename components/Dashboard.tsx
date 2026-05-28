@@ -144,7 +144,7 @@ export default function Dashboard() {
             {/* Title + nav */}
             <div className="flex items-center gap-6">
               <h1 className="font-display font-bold text-lg tracking-wide text-rd-bg whitespace-nowrap">
-                Char&apos;s Command Center
+                Char&apos;s Executive Suite
               </h1>
               <nav className="flex gap-0.5">
                 {TABS.map(t => {
