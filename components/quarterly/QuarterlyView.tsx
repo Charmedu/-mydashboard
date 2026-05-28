@@ -46,15 +46,12 @@ export default function QuarterlyView({ data, expenses, onChange }: Props) {
 
   const qData = data[activeQ] ?? emptyQuarter(activeQ);
   const isCurrentQ = activeQ === current;
-
-  // Quarter pills: all quarters with data, sorted
   const knownQuarters = Object.keys(data).sort();
 
   function update(updated: QuarterlyData) {
     onChange({ ...data, [activeQ]: updated });
   }
 
-  // Summary stats
   const allGoals = Object.values(qData.goals).flat();
   const doneGoals = allGoals.filter(g => g.done).length;
   const goalPct = allGoals.length > 0 ? Math.round((doneGoals / allGoals.length) * 100) : null;
@@ -69,43 +66,41 @@ export default function QuarterlyView({ data, expenses, onChange }: Props) {
       {/* Header */}
       <div className="flex flex-wrap items-start gap-4 justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">Quarter View</h2>
-          <p className="text-slate-500 text-sm mt-0.5">
-            {activeQ}{isCurrentQ ? ' · Current' : ''}
-          </p>
+          <h2 className="font-display text-2xl font-bold text-rd-text tracking-tight">Quarter View</h2>
+          <p className="text-rd-muted text-sm mt-0.5">{activeQ}{isCurrentQ ? ' · Current' : ''}</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-4">
           {/* Summary chips */}
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             {goalPct !== null && (
-              <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-3 py-2 shadow-sm">
-                <Target className="w-3.5 h-3.5 text-indigo-500" />
-                <span className="text-xs font-semibold text-slate-700">{doneGoals}/{allGoals.length} goals</span>
-                <span className={`text-xs font-bold ml-1 ${goalPct >= 80 ? 'text-emerald-500' : goalPct >= 50 ? 'text-amber-500' : 'text-slate-400'}`}>
+              <div className="flex items-center gap-1.5 rd-card px-3 py-2">
+                <Target className="w-3.5 h-3.5 text-rd-accent" />
+                <span className="text-xs font-semibold text-rd-text">{doneGoals}/{allGoals.length} goals</span>
+                <span className={`text-xs font-bold ml-1 ${goalPct >= 80 ? 'text-emerald-500' : goalPct >= 50 ? 'text-rd-accent' : 'text-rd-muted'}`}>
                   {goalPct}%
                 </span>
               </div>
             )}
             {totalDebt > 0 && (
-              <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-3 py-2 shadow-sm">
-                <CreditCard className="w-3.5 h-3.5 text-rose-500" />
-                <span className="text-xs font-semibold text-rose-700">{fmt(totalDebt)} debt</span>
+              <div className="flex items-center gap-1.5 rd-card px-3 py-2">
+                <CreditCard className="w-3.5 h-3.5 text-rose-400" />
+                <span className="text-xs font-semibold text-rose-600">{fmt(totalDebt)} debt</span>
               </div>
             )}
             {totalSaved > 0 && (
-              <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-3 py-2 shadow-sm">
+              <div className="flex items-center gap-1.5 rd-card px-3 py-2">
                 <PiggyBank className="w-3.5 h-3.5 text-emerald-500" />
-                <span className="text-xs font-semibold text-emerald-700">{fmt(totalSaved)} saved</span>
+                <span className="text-xs font-semibold text-emerald-600">{fmt(totalSaved)} saved</span>
                 {savingsPct !== null && (
-                  <span className="text-xs text-slate-400 ml-0.5">({savingsPct}%)</span>
+                  <span className="text-xs text-rd-muted ml-0.5">({savingsPct}%)</span>
                 )}
               </div>
             )}
             {qData.achievements.length > 0 && (
-              <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-3 py-2 shadow-sm">
+              <div className="flex items-center gap-1.5 rd-card px-3 py-2">
                 <Trophy className="w-3.5 h-3.5 text-amber-500" />
-                <span className="text-xs font-semibold text-amber-700">{qData.achievements.length} wins</span>
+                <span className="text-xs font-semibold text-amber-600">{qData.achievements.length} wins</span>
               </div>
             )}
           </div>
@@ -114,27 +109,25 @@ export default function QuarterlyView({ data, expenses, onChange }: Props) {
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => setActiveQ(q => shiftQuarter(q, -1))}
-              className="p-2 rounded-lg hover:bg-slate-200 transition-colors"
+              className="p-2 rounded-lg hover:bg-rd-surface transition-colors duration-200"
               aria-label="Previous quarter"
             >
-              <ChevronLeft className="w-5 h-5 text-slate-600" />
+              <ChevronLeft className="w-5 h-5 text-rd-text" />
             </button>
             <button
               onClick={() => setActiveQ(current)}
-              className={`px-3 py-1.5 text-sm font-semibold rounded-lg transition-colors ${
-                isCurrentQ
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
+              className={`px-3 py-1.5 text-sm font-semibold rounded-lg transition-colors duration-200 ${
+                isCurrentQ ? 'bg-rd-text text-rd-bg' : 'rd-btn-ghost'
               }`}
             >
               {current}
             </button>
             <button
               onClick={() => setActiveQ(q => shiftQuarter(q, 1))}
-              className="p-2 rounded-lg hover:bg-slate-200 transition-colors"
+              className="p-2 rounded-lg hover:bg-rd-surface transition-colors duration-200"
               aria-label="Next quarter"
             >
-              <ChevronRight className="w-5 h-5 text-slate-600" />
+              <ChevronRight className="w-5 h-5 text-rd-text" />
             </button>
           </div>
         </div>
@@ -147,12 +140,12 @@ export default function QuarterlyView({ data, expenses, onChange }: Props) {
             <button
               key={q}
               onClick={() => setActiveQ(q)}
-              className={`px-2.5 py-1 text-xs font-semibold rounded-full border transition-colors ${
+              className={`px-2.5 py-1 text-xs font-semibold rounded-full border transition-colors duration-200 ${
                 q === activeQ
-                  ? 'bg-indigo-600 text-white border-indigo-600'
+                  ? 'bg-rd-text text-rd-bg border-rd-text'
                   : q === current
-                  ? 'border-indigo-300 text-indigo-600 hover:bg-indigo-50'
-                  : 'border-slate-200 text-slate-500 hover:border-slate-400 hover:text-slate-700'
+                  ? 'border-rd-accent text-rd-text hover:bg-rd-bg'
+                  : 'border-rd-border text-rd-muted hover:border-rd-accent hover:text-rd-text'
               }`}
             >
               {q}
@@ -161,38 +154,22 @@ export default function QuarterlyView({ data, expenses, onChange }: Props) {
         </div>
       )}
 
-      {/* Empty-state banner for future/past quarters */}
       {!data[activeQ] && (
-        <div className="bg-slate-50 border border-dashed border-slate-300 rounded-xl p-4 text-center text-sm text-slate-500">
-          No data for <span className="font-semibold">{activeQ}</span> yet — start adding goals and you&apos;ll build history here.
+        <div className="bg-rd-bg border border-dashed border-rd-border rounded-[10px] p-4 text-center text-sm text-rd-muted">
+          No data for <span className="font-semibold text-rd-text">{activeQ}</span> yet — start adding goals to build history here.
         </div>
       )}
 
-      {/* Goals + Finances */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <QuarterlyGoals
-          goals={qData.goals}
-          onChange={goals => update({ ...qData, goals })}
-        />
-        <Finances
-          finances={qData.finances}
-          onChange={finances => update({ ...qData, finances })}
-        />
+        <QuarterlyGoals goals={qData.goals} onChange={goals => update({ ...qData, goals })} />
+        <Finances finances={qData.finances} onChange={finances => update({ ...qData, finances })} />
       </div>
 
-      {/* Achievements + Parking Lot */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <Achievements
-          achievements={qData.achievements}
-          onChange={achievements => update({ ...qData, achievements })}
-        />
-        <ParkingLot
-          items={qData.parkingLot}
-          onChange={parkingLot => update({ ...qData, parkingLot })}
-        />
+        <Achievements achievements={qData.achievements} onChange={achievements => update({ ...qData, achievements })} />
+        <ParkingLot items={qData.parkingLot} onChange={parkingLot => update({ ...qData, parkingLot })} />
       </div>
 
-      {/* Expense log */}
       <ExpenseLog expenses={expenses} />
     </div>
   );

@@ -18,11 +18,11 @@ interface Props {
   onChange: (goals: GoalsMap) => void;
 }
 
-const CATEGORIES: { key: keyof GoalsMap; label: string; color: string; bg: string }[] = [
-  { key: 'finance',  label: 'Finance',  color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
-  { key: 'health',   label: 'Health',   color: 'text-rose-700',    bg: 'bg-rose-50 border-rose-200' },
-  { key: 'school',   label: 'School',   color: 'text-violet-700',  bg: 'bg-violet-50 border-violet-200' },
-  { key: 'personal', label: 'Personal', color: 'text-amber-700',   bg: 'bg-amber-50 border-amber-200' },
+const CATEGORIES: { key: keyof GoalsMap; label: string; accent: string; bg: string }[] = [
+  { key: 'finance',  label: 'Finance',  accent: '#10b981', bg: 'bg-emerald-50 border-emerald-200' },
+  { key: 'health',   label: 'Health',   accent: '#d4b0a8', bg: 'bg-rd-bg border-rd-border' },
+  { key: 'school',   label: 'School',   accent: '#5c3e38', bg: 'bg-rd-bg border-rd-border' },
+  { key: 'personal', label: 'Personal', accent: '#b88880', bg: 'bg-rd-bg border-rd-border' },
 ];
 
 function GoalSection({ category, goals, onUpdate }: {
@@ -51,10 +51,12 @@ function GoalSection({ category, goals, onUpdate }: {
   const done = goals.filter(g => g.done).length;
 
   return (
-    <div className={`border rounded-xl p-4 ${category.bg}`}>
+    <div className={`border rounded-[10px] p-4 ${category.bg}`}>
       <div className="flex items-center justify-between mb-3">
-        <h4 className={`font-semibold ${category.color}`}>{category.label}</h4>
-        <span className="text-xs text-slate-500">{done}/{goals.length}</span>
+        <h4 className="font-semibold text-rd-text text-sm" style={{ borderLeft: `3px solid ${category.accent}`, paddingLeft: '0.5rem' }}>
+          {category.label}
+        </h4>
+        <span className="text-xs text-rd-muted">{done}/{goals.length}</span>
       </div>
 
       <div className="space-y-1.5 mb-3 min-h-[40px]">
@@ -62,24 +64,26 @@ function GoalSection({ category, goals, onUpdate }: {
           <div key={goal.id} className="flex items-center gap-2 group">
             <button
               onClick={e => toggle(goal.id, e)}
-              className={`w-4 h-4 flex-shrink-0 rounded border-2 flex items-center justify-center transition-all hover:scale-110 active:scale-95 ${
-                goal.done ? 'bg-slate-600 border-slate-600' : 'border-slate-400 hover:border-slate-600'
-              }`}
+              className="w-4 h-4 flex-shrink-0 rounded border-2 flex items-center justify-center transition-all duration-150 hover:scale-110 active:scale-95"
+              style={goal.done
+                ? { background: category.accent, borderColor: category.accent }
+                : { borderColor: '#ead8d0' }
+              }
             >
-              {goal.done && <Check className="w-2.5 h-2.5 text-white" />}
+              {goal.done && <Check className="w-2.5 h-2.5 text-white check-animate" />}
             </button>
-            <span className={`flex-1 text-sm ${goal.done ? 'line-through text-slate-400' : 'text-slate-700'}`}>
+            <span className={`flex-1 text-sm ${goal.done ? 'line-through text-rd-muted' : 'text-rd-text'}`}>
               {goal.text}
             </span>
             <button
               onClick={() => remove(goal.id)}
-              className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all"
+              className="opacity-0 group-hover:opacity-100 text-rd-muted hover:text-red-400 transition-all"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
           </div>
         ))}
-        {goals.length === 0 && <p className="text-slate-400 text-xs">No goals yet.</p>}
+        {goals.length === 0 && <p className="text-rd-muted text-xs">No goals yet.</p>}
       </div>
 
       <div className="flex gap-2">
@@ -89,11 +93,11 @@ function GoalSection({ category, goals, onUpdate }: {
           onChange={e => setText(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && add()}
           placeholder="Add goal…"
-          className="flex-1 text-sm border border-slate-200 bg-white rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 placeholder:text-slate-400"
+          className="rd-input flex-1 text-sm py-1.5"
         />
         <button
           onClick={add}
-          className="p-1.5 bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition-colors"
+          className="rd-btn p-1.5"
         >
           <Plus className="w-4 h-4" />
         </button>
@@ -104,8 +108,8 @@ function GoalSection({ category, goals, onUpdate }: {
 
 export default function QuarterlyGoals({ goals, onChange }: Props) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-      <h3 className="font-semibold text-slate-800 mb-4">Quarterly Goals</h3>
+    <div className="rd-card p-5">
+      <h3 className="rd-section-title text-sm">Quarterly Goals</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {CATEGORIES.map(cat => (
           <GoalSection

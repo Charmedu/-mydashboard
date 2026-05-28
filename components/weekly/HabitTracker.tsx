@@ -14,9 +14,9 @@ interface Props {
 }
 
 const COLORS = [
-  '#10b981', '#6366f1', '#f59e0b', '#ef4444',
-  '#8b5cf6', '#06b6d4', '#f97316', '#ec4899',
-  '#14b8a6', '#64748b',
+  '#5c3e38', '#d4b0a8', '#b88880', '#4a3230',
+  '#10b981', '#f59e0b', '#3b82f6', '#8b5cf6',
+  '#ec4899', '#06b6d4',
 ];
 
 const ICONS = [
@@ -85,9 +85,7 @@ export default function HabitTracker({ habits, weekStart, onChange }: Props) {
         ? { ...h, completions: { ...h.completions, [weekStart]: newDays } }
         : h
     ));
-    if (wasOff) {
-      celebrate(cellRefs.current[`${habitId}-${dayIdx}`]);
-    }
+    if (wasOff) celebrate(cellRefs.current[`${habitId}-${dayIdx}`]);
   }
 
   function removeHabit(id: string) {
@@ -100,7 +98,7 @@ export default function HabitTracker({ habits, weekStart, onChange }: Props) {
       <>
         <tr>
           <td colSpan={10} className="pt-3 pb-1.5">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-rd-muted">{label}</span>
           </td>
         </tr>
         {sectionHabits.map(habit => {
@@ -119,7 +117,7 @@ export default function HabitTracker({ habits, weekStart, onChange }: Props) {
                     >
                       {habit.name}
                     </div>
-                    <div className={`text-[10px] font-bold mt-0.5 ${goalMet ? 'text-emerald-500' : 'text-slate-400'}`}>
+                    <div className={`text-[10px] font-bold mt-0.5 ${goalMet ? 'text-emerald-500' : 'text-rd-muted'}`}>
                       {checked}/{habit.weeklyGoal}d
                     </div>
                   </div>
@@ -130,15 +128,15 @@ export default function HabitTracker({ habits, weekStart, onChange }: Props) {
                   <button
                     ref={el => { cellRefs.current[`${habit.id}-${i}`] = el; }}
                     onClick={() => toggleDay(habit.id, i)}
-                    className="w-7 h-7 rounded-lg border-2 mx-auto flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+                    className="w-7 h-7 rounded-lg border-2 mx-auto flex items-center justify-center transition-all duration-150 hover:scale-110 active:scale-95"
                     style={done
                       ? { background: habit.color, borderColor: habit.color }
-                      : { borderColor: '#e2e8f0', background: 'transparent' }
+                      : { borderColor: '#ead8d0', background: 'transparent' }
                     }
                     aria-label={`${habit.name} ${DAYS[i]}`}
                   >
                     {done && (
-                      <svg viewBox="0 0 12 12" className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <svg viewBox="0 0 12 12" className="w-3 h-3 text-white check-animate" fill="none" stroke="currentColor" strokeWidth="2.5">
                         <path d="M2 6l3 3 5-5" />
                       </svg>
                     )}
@@ -148,7 +146,7 @@ export default function HabitTracker({ habits, weekStart, onChange }: Props) {
               <td className="pl-1.5 py-1.5">
                 <button
                   onClick={() => removeHabit(habit.id)}
-                  className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-400 transition-all"
+                  className="opacity-0 group-hover:opacity-100 text-rd-muted hover:text-red-400 transition-all"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -161,19 +159,19 @@ export default function HabitTracker({ habits, weekStart, onChange }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-      <h3 className="font-semibold text-slate-800 mb-4">Habits</h3>
+    <div className="rd-card p-5">
+      <h3 className="rd-section-title text-sm">Habits</h3>
 
       {habits.length > 0 ? (
         <div className="overflow-x-auto mb-2">
           <table className="w-full text-xs">
             <thead>
               <tr>
-                <th className="text-left text-slate-500 font-medium pb-2 pr-3">Habit</th>
+                <th className="text-left text-rd-muted font-medium pb-2 pr-3">Habit</th>
                 {DAYS.map((d, i) => (
                   <th key={d} className="text-center font-medium pb-2 px-0.5 min-w-[2rem]">
-                    <div className="text-slate-500 text-[11px]">{d}</div>
-                    <div className="text-slate-300 text-[10px] font-normal">{weekDates[i]}</div>
+                    <div className="text-rd-muted text-[11px]">{d}</div>
+                    <div className="text-rd-accent text-[10px] font-normal">{weekDates[i]}</div>
                   </th>
                 ))}
                 <th className="w-5" />
@@ -186,13 +184,13 @@ export default function HabitTracker({ habits, weekStart, onChange }: Props) {
           </table>
         </div>
       ) : (
-        <p className="text-slate-400 text-sm text-center py-4 mb-2">No habits yet.</p>
+        <p className="text-rd-muted text-sm text-center py-4 mb-2">No habits yet.</p>
       )}
 
-      <div className="border-t border-slate-100 pt-3">
+      <div className="border-t border-rd-border pt-3">
         <button
           onClick={() => setShowForm(v => !v)}
-          className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
+          className="flex items-center gap-1.5 text-xs font-semibold text-rd-text hover:text-rd-dark transition-colors duration-200"
         >
           {showForm ? <ChevronUp className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
           {showForm ? 'Cancel' : 'Add habit'}
@@ -207,18 +205,18 @@ export default function HabitTracker({ habits, weekStart, onChange }: Props) {
               onKeyDown={e => e.key === 'Enter' && addHabit()}
               placeholder="Habit name…"
               autoFocus
-              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 placeholder:text-slate-400"
+              className="rd-input text-sm"
             />
 
             <div>
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Icon</div>
+              <div className="text-[10px] font-bold text-rd-muted uppercase tracking-wider mb-1.5">Icon</div>
               <div className="flex flex-wrap gap-1">
                 {ICONS.map(icon => (
                   <button
                     key={icon}
                     onClick={() => setNewIcon(icon)}
                     className={`w-8 h-8 rounded-lg text-base flex items-center justify-center transition-all hover:scale-110 ${
-                      newIcon === icon ? 'ring-2 ring-indigo-400 bg-indigo-50 scale-110' : 'hover:bg-slate-100'
+                      newIcon === icon ? 'ring-2 ring-rd-accent bg-rd-bg scale-110' : 'hover:bg-rd-bg'
                     }`}
                   >
                     {icon}
@@ -228,7 +226,7 @@ export default function HabitTracker({ habits, weekStart, onChange }: Props) {
             </div>
 
             <div>
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Color</div>
+              <div className="text-[10px] font-bold text-rd-muted uppercase tracking-wider mb-1.5">Color</div>
               <div className="flex gap-2 flex-wrap">
                 {COLORS.map(c => (
                   <button
@@ -247,7 +245,7 @@ export default function HabitTracker({ habits, weekStart, onChange }: Props) {
 
             <div className="flex gap-4">
               <div className="flex-1">
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Section</div>
+                <div className="text-[10px] font-bold text-rd-muted uppercase tracking-wider mb-1.5">Section</div>
                 <div className="flex gap-1.5">
                   {(['daily', 'other'] as const).map(s => (
                     <button
@@ -255,8 +253,8 @@ export default function HabitTracker({ habits, weekStart, onChange }: Props) {
                       onClick={() => setNewSection(s)}
                       className={`flex-1 py-1.5 text-xs rounded-lg font-semibold transition-colors capitalize ${
                         newSection === s
-                          ? 'bg-indigo-600 text-white'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          ? 'bg-rd-text text-rd-bg'
+                          : 'bg-rd-bg text-rd-text hover:bg-rd-surface border border-rd-border'
                       }`}
                     >
                       {s}
@@ -266,24 +264,21 @@ export default function HabitTracker({ habits, weekStart, onChange }: Props) {
               </div>
 
               <div className="flex-1">
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                <div className="text-[10px] font-bold text-rd-muted uppercase tracking-wider mb-1.5">
                   Goal — {newGoal}/7 days
                 </div>
                 <input
                   type="range"
-                  min={1}
-                  max={7}
+                  min={1} max={7}
                   value={newGoal}
                   onChange={e => setNewGoal(Number(e.target.value))}
-                  className="w-full accent-indigo-600 mt-1"
+                  className="w-full mt-1"
+                  style={{ accentColor: '#5c3e38' }}
                 />
               </div>
             </div>
 
-            <button
-              onClick={addHabit}
-              className="w-full py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-colors"
-            >
+            <button onClick={addHabit} className="rd-btn w-full py-2 text-sm justify-center">
               Add Habit
             </button>
           </div>

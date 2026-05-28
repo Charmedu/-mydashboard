@@ -14,12 +14,12 @@ interface Props {
 const CATEGORIES = ['Work', 'Personal', 'Health', 'School', 'Finance', 'Other'];
 
 const CATEGORY_COLORS: Record<string, string> = {
-  Work: '#6366f1',
-  Personal: '#ec4899',
-  Health: '#10b981',
-  School: '#f59e0b',
-  Finance: '#14b8a6',
-  Other: '#94a3b8',
+  Work:     '#5c3e38',
+  Personal: '#d4b0a8',
+  Health:   '#10b981',
+  School:   '#b88880',
+  Finance:  '#4a3230',
+  Other:    '#ead8d0',
 };
 
 export default function TaskChecklist({ tasks, onChange }: Props) {
@@ -36,9 +36,7 @@ export default function TaskChecklist({ tasks, onChange }: Props) {
     const task = tasks.find(t => t.id === id)!;
     const completing = !task.done;
     onChange(tasks.map(t => t.id === id ? { ...t, done: !t.done } : t));
-    if (completing) {
-      celebrate(e.currentTarget);
-    }
+    if (completing) celebrate(e.currentTarget);
   }
 
   function remove(id: string) {
@@ -49,42 +47,46 @@ export default function TaskChecklist({ tasks, onChange }: Props) {
   const pct = tasks.length ? Math.round((done / tasks.length) * 100) : 0;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+    <div className="rd-card p-5 h-full flex flex-col">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-slate-800">Tasks</h3>
-        <span className="text-xs text-slate-500 font-medium">{done}/{tasks.length} done</span>
+        <h3 className="rd-section-title text-sm">Tasks</h3>
+        <span className="text-xs text-rd-muted font-medium">{done}/{tasks.length}</span>
       </div>
 
       {tasks.length > 0 && (
         <div className="mb-4">
-          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+          <div className="h-1 bg-rd-border rounded-full overflow-hidden">
             <div
-              className="h-full bg-indigo-500 rounded-full transition-all duration-500"
+              className="h-full bg-rd-accent rounded-full transition-all duration-500"
               style={{ width: `${pct}%` }}
             />
           </div>
+          <p className="text-[10px] text-rd-muted mt-1 text-right font-medium">{pct}% complete</p>
         </div>
       )}
 
-      <div className="space-y-1 mb-4 max-h-72 overflow-y-auto scrollbar-thin pr-1">
+      <div className="space-y-0.5 mb-4 flex-1 overflow-y-auto scrollbar-thin pr-1 max-h-72">
         {tasks.length === 0 && (
-          <p className="text-slate-400 text-sm text-center py-4">No tasks yet.</p>
+          <p className="text-rd-muted text-sm text-center py-6">No tasks yet — add one below.</p>
         )}
         {tasks.map(task => {
-          const catColor = CATEGORY_COLORS[task.category ?? 'Other'] ?? '#94a3b8';
+          const catColor = CATEGORY_COLORS[task.category ?? 'Other'] ?? '#d4b0a8';
           return (
-            <div key={task.id} className="flex items-center gap-2.5 group py-1 rounded-lg px-1 hover:bg-slate-50 transition-colors">
+            <div
+              key={task.id}
+              className="flex items-center gap-2.5 group py-1.5 rounded-lg px-2 hover:bg-rd-bg transition-colors duration-150"
+            >
               <button
                 onClick={e => toggle(task.id, e)}
-                className="w-5 h-5 flex-shrink-0 rounded border-2 flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+                className="w-5 h-5 flex-shrink-0 rounded border-2 flex items-center justify-center transition-all duration-150 hover:scale-110 active:scale-95"
                 style={task.done
                   ? { background: catColor, borderColor: catColor }
-                  : { borderColor: '#cbd5e1' }
+                  : { borderColor: '#ead8d0' }
                 }
               >
-                {task.done && <Check className="w-3 h-3 text-white" />}
+                {task.done && <Check className="w-3 h-3 text-white check-animate" />}
               </button>
-              <span className={`flex-1 text-sm leading-snug ${task.done ? 'line-through text-slate-400' : 'text-slate-700'}`}>
+              <span className={`flex-1 text-sm leading-snug ${task.done ? 'line-through text-rd-muted' : 'text-rd-text'}`}>
                 {task.text}
               </span>
               {task.category && (
@@ -97,7 +99,7 @@ export default function TaskChecklist({ tasks, onChange }: Props) {
               )}
               <button
                 onClick={() => remove(task.id)}
-                className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-400 transition-all flex-shrink-0"
+                className="opacity-0 group-hover:opacity-100 text-rd-muted hover:text-red-400 transition-all flex-shrink-0"
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
@@ -106,26 +108,26 @@ export default function TaskChecklist({ tasks, onChange }: Props) {
         })}
       </div>
 
-      <div className="space-y-2 border-t border-slate-100 pt-3">
+      <div className="space-y-2 border-t border-rd-border pt-3 mt-auto">
         <input
           type="text"
           value={newText}
           onChange={e => setNewText(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && addTask()}
           placeholder="Add a task…"
-          className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-700 placeholder:text-slate-400"
+          className="rd-input text-sm"
         />
         <div className="flex gap-2">
           <select
             value={newCategory}
             onChange={e => setNewCategory(e.target.value)}
-            className="flex-1 text-xs border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-300 text-slate-600 bg-white"
+            className="flex-1 text-xs border border-rd-border rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-rd-accent text-rd-text bg-white"
           >
             {CATEGORIES.map(c => <option key={c}>{c}</option>)}
           </select>
           <button
             onClick={addTask}
-            className="flex items-center gap-1 px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:bg-indigo-700 transition-colors"
+            className="rd-btn text-xs px-3 py-1.5"
           >
             <Plus className="w-3.5 h-3.5" /> Add
           </button>
