@@ -30,8 +30,7 @@ function fmt(n: number) {
   return `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-function getChicagoTime(): { hour: number; dayOfWeek: number; dayOfMonth: number } {
-  const now = new Date();
+function getChicagoTime(now = new Date()): { hour: number; dayOfWeek: number; dayOfMonth: number } {
   const parts = new Intl.DateTimeFormat('en-US', {
     timeZone: 'America/Chicago',
     hour: 'numeric',
@@ -614,6 +613,24 @@ async function sendMonthlySummary(data: DashboardData): Promise<void> {
 }
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
+  // Capture time before any async work so the hour is accurate regardless of DB latency
+  const now = new Date();
+  const utcHour = now.getUTCHours();
+  const { dayOfWeek, dayOfMonth } = getChicagoTime(now);
+  const cdtTime = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Chicago',
+    weekday: 'short', hour: 'numeric', minute: '2-digit', hour12: true,
+  }).format(now);
+
+  const briefing =
+    utcHour === 12 ? 'morning' :
+    utcHour === 21 ? 'afternoon' :
+    utcHour === 2  ? 'evening' :
+    utcHour === 23 ? 'weekly-spend' :
+    utcHour === 0  ? 'reflection' : 'none';
+
+  console.log(`[cron] fired | utc=${now.toISOString()} | cdt=${cdtTime} | matched=${briefing}`);
+
   const cronSecret = process.env.CRON_SECRET;
   if (cronSecret && req.headers.get('authorization') !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -627,41 +644,38 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const [data, refreshToken] = await Promise.all([loadUserData(USER_EMAIL), loadUserToken(USER_EMAIL)]);
     if (!data) return NextResponse.json({ error: 'No data' }, { status: 404 });
 
-    const { hour, dayOfWeek, dayOfMonth } = getChicagoTime();
-
-    // Always: fire pending user reminders
     const updatedData = await checkReminders(data);
+    let sent = false;
 
-    // 7 AM: morning briefing (includes exams/assignments, Gmail, weather)
-    if (hour === 7) {
+    // Dispatch on UTC hour — matches the pinned cron schedules in vercel.json directly,
+    // avoiding any CDT/CST ambiguity in the timezone conversion.
+    if (utcHour === 12) {
+      // 7 AM CDT: morning briefing
       await sendMorningBriefing(updatedData, refreshToken);
-      if (dayOfMonth === 1) {
-        await sendMonthlySummary(updatedData);
-      }
-    }
-
-    // 4 PM: afternoon check-in + Gmail
-    if (hour === 16) {
+      sent = true;
+      if (dayOfMonth === 1) await sendMonthlySummary(updatedData);
+    } else if (utcHour === 21) {
+      // 4 PM CDT: afternoon check-in
       await sendAfternoonCheckin(updatedData, refreshToken);
-    }
-
-    // 9 PM: evening recap
-    if (hour === 21) {
+      sent = true;
+    } else if (utcHour === 2) {
+      // 9 PM CDT: evening recap
       await sendEveningRecap(updatedData);
-    }
-
-    // Sunday 6 PM: weekly spending summary
-    if (dayOfWeek === 0 && hour === 18) {
+      sent = true;
+    } else if (dayOfWeek === 0 && utcHour === 23) {
+      // Sunday 6 PM CDT: weekly spending summary
       await sendWeeklySpend(updatedData);
-    }
-
-    // Sunday 7 PM: reflection prompts
-    if (dayOfWeek === 0 && hour === 19) {
+      sent = true;
+    } else if (dayOfWeek === 0 && utcHour === 0) {
+      // Sunday 7 PM CDT (midnight UTC Monday): reflection prompts
       await sendReflection();
+      sent = true;
     }
 
-    return NextResponse.json({ ok: true, hour, dayOfWeek, dayOfMonth });
+    console.log(`[cron] done  | briefing=${briefing} | sent=${sent}`);
+    return NextResponse.json({ ok: true, utcHour, dayOfWeek, dayOfMonth, briefing, sent });
   } catch (err) {
+    console.error(`[cron] error | briefing=${briefing} |`, err instanceof Error ? err.message : err);
     return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
