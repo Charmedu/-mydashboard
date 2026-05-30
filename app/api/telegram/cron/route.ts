@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { initDb, loadUserData, loadUserToken, saveUserData } from '@/lib/db';
 import { sendMessage } from '@/lib/telegram';
